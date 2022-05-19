@@ -1,0 +1,21 @@
+{
+  "name": "brotherfan",
+  "version": "1.0.0",
+  "description": "前端工具箱，一行命令解决开发中的各种小需求",
+  "main": "index.js",
+  "bin": {
+    "fan": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "WangFan",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "chalk": "^4.1.2",
+    "commander": "^9.2.0",
+    "inquirer": "^8.2.4"
+  }
+}
