@@ -27,11 +27,11 @@ program
 
 // 创建vue页面 并添加路由
 program
-  .command("add")
+  .command("generate <pageName>")
+  .alias("g")
   .description("创建vue页面 并添加路由")
-  .option('-n, --name <pageName>', '页面文件名称')
   .action((option) => {
-    require('./src/modules/addvuepage/index.js')(option.name)
+    require('./src/modules/addvuepage/index.js')(option)
   });
 
 program.parse(process.argv);
