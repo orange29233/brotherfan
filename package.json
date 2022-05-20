@@ -1,7 +1,7 @@
 {
   "name": "brotherfan",
   "version": "1.0.0",
-  "description": "前端工具箱，一行命令解决开发中的各种小需求",
+  "description": "前端工具箱，一行命令解决日常和工作中的各种小需求",
   "main": "index.js",
   "bin": {
     "fan": "index.js"
