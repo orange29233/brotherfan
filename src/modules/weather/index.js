@@ -1,11 +1,12 @@
 const axios = require("axios");
 const chalk = require("chalk");
+const apiconfig = require('./weatherapi.config')
 
 module.exports = async (city) => {
-  city = city?city:'武汉'
+  city = city ? city : '武汉'
   const res = await axios({
     method: "get",
-    url: "https://v0.yiketianqi.com/free/day?unescape=1&appid=xxxxx&appsecret=xxxxx",
+    url: `https://v0.yiketianqi.com/free/day?unescape=1&appid=${apiconfig.appid}&appsecret=${apiconfig.appsecret}`,
     params: {
       format: "json",
       city: city,
