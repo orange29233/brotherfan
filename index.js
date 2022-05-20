@@ -8,26 +8,24 @@ const chalk = require("chalk");
 program.version("0.0.1");
 
 // 根据swagger文档生成 axios api文件 js
-const getApiFiles = require('./src/modules/generateApiFile/index.js')
 program
   .command("api")
   .alias("a")
   .description("根据swagger文档生成 axios api文件")
   .action((option) => {
-    getApiFiles()
+    require('./src/modules/generateApiFile/index.js')()
   });
 
 // 获取天气
 program
-  .command("weather")
+  .command("weather [city]")
   .alias("w")
   .description("查看天气预报")
-  .option('-c, --city [cityName]', '城市名称', '武汉')
   .action((option) => {
-    require('./src/modules/weather/index.js')(option.city)
+    require('./src/modules/weather/index.js')(option)
   });
 
-// 获取天气
+// 创建vue页面 并添加路由
 program
   .command("add")
   .description("创建vue页面 并添加路由")
