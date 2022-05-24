@@ -34,4 +34,12 @@ program
     require('./src/modules/addvuepage/index.js')(option)
   });
 
+// 创建node开发服务器
+program
+  .command("dev [port]")
+  .description("运行node服务器")
+  .action((option) => {
+    require('./src/modules/devsever/index.js')(option)
+  });
+
 program.parse(process.argv);
