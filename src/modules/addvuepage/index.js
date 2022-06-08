@@ -30,13 +30,13 @@ const selectTemplate = async (tems) => {
 
 //生成模板
 const generateTemplate = async (templateFileName, fileName) => {
-    const srcPath = path.join(process.cwd(), '/src/views');
+    const srcPath = path.join(process.cwd(), `/src/views/${fileName}`);
     if (!fs.existsSync(srcPath)) {
         mkdirsSync(srcPath);
         console.log(chalk.green(`创建目录成功：${srcPath}`));
     }
     const template = fs.readFileSync(path.join(__dirname, `./templates/${templateFileName}`), 'utf-8');
-    const filePath = path.join(srcPath, `${fileName}.vue`);
+    const filePath = path.join(srcPath, `index.vue`);
     fs.writeFileSync(filePath, template, 'utf-8', (err) => {
         if (err) {
             console.log(chalk.red(`生成文件失败：${filePath}`));

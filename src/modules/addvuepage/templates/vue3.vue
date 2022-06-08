@@ -1,11 +1,9 @@
 <template>
-  <div>123123</div>
+  <div>new page</div>
 </template>
 
-<script>
-export default {
+<script setup lang='ts'>
 
-}
 </script>
 
 <style>
