@@ -42,4 +42,33 @@ program
     require('./src/modules/devsever/index.js')(option)
   });
 
+// 导出Excel文件
+program
+  .command("export [fileName]")
+  .description("导出excel")
+  .action((option) => {
+    require('./src/modules/exportExcel/index.js')(option)
+  });
+
+// 获取当前IP
+program
+  .command("ip")
+  .description("获取本机IP")
+  .action((option) => {
+    const interfaces = require('os').networkInterfaces(); //服务器本机地址
+    let IPAdress = '';
+    for (var devName in interfaces) {
+      var iface = interfaces[devName];
+      for (var i = 0; i < iface.length; i++) {
+        var alias = iface[i];
+        if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+          IPAdress = alias.address;
+          console.log(IPAdress);
+        }
+      }
+    }
+
+
+  });
+
 program.parse(process.argv);
