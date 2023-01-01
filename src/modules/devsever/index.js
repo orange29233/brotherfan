@@ -9,7 +9,4 @@ module.exports = (port) => {
         console.log(`server is running at port http://localhost:${port || 3600}/index.html`);
     });
 
-    // fs.watch(process.cwd(), (event, filename) => {
-    //     console.log(`${filename} is changed`);
-    // })
 }

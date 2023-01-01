@@ -6,8 +6,8 @@ var axios = require("axios");
 var inquirer = require("inquirer");
 var chalk = require('chalk')
 //启动函数
-module.exports = async function run() {
-  const url = "http://39.98.132.24:8282/v3/api-docs"; //请求json地址
+module.exports = async function run(url) {
+  //url  "http://39.98.132.24:8282/v3/api-docs"; //请求json地址
   const apiPath = path.join("src", "api"); //存放api文件地址
   const choices = []; //存储所有重复性文件
 
