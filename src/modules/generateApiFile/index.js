@@ -27,7 +27,11 @@ module.exports = async function run(url) {
 
 //获取swagger.json数据
 async function getData(url) {
-  return await axios({ url: url, method: "get" });
+  // const headers = {
+  //   'Knfie4j-Gateway-Request':'8c6d4e441cda4bcb11cdb594aa14217c',
+  //   'Knife4j-Gateway-Code':"ROOT"
+  // }
+  return await axios({ url: url, method: "get"});
 }
 
 //选取需要生成的Tag对象
@@ -57,7 +61,8 @@ function tagPaths(paths, tag) {
 }
 
 function tagTemp(urls) {
-  let template = `import axios from 'axios'`;
+  // let template = `import axios from 'axios'`;
+  let template = `export default const Api = {`;
   urls.forEach((e) => {
     Object.keys(e).forEach((j) => {
       var obj = e[j];
@@ -78,15 +83,24 @@ function tagTemp(urls) {
         var query = j == "get" ? "params" : "data";
       }
 
-      template += `\n// ${obj.summary} 
-export function ${j + titleCase(name)}(${query}) {  
-return axios({    
-    url:\`${obj.url}\`,    
-    method:'${j}',    
-    ${body}  
-})}\n`;
+//       template += `\n// ${obj.summary} 
+// export function ${j + titleCase(name)}(${query}) {  
+// return axios({    
+//     url:\`${obj.url}\`,    
+//     method:'${j}',    
+//     ${body}  
+// })}\n`;
+
+    template +=`\n/** 
+    @name : ${obj.summary} 
+    @method : ${j} 
+    @params : ${query}
+    */
+    ${titleCase(name)}Url : \`${obj.url}\`,\n `
+
     });
   });
+  template += '}'
   return template;
 }
 

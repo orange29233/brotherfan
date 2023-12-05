@@ -30,7 +30,7 @@ const selectTemplate = async (tems) => {
 
 //生成模板
 const generateTemplate = async (templateFileName, fileName) => {
-    const srcPath = path.join(process.cwd(), `/src/views/${fileName}`);
+    const srcPath = path.join(process.cwd(), `/src/view/${fileName}`);
     if (!fs.existsSync(srcPath)) {
         mkdirsSync(srcPath);
         console.log(chalk.green(`创建目录成功：${srcPath}`));
