@@ -15,7 +15,7 @@
   "email": "orange29233@126.com",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.6.0",
     "chalk": "^4.1.2",
     "commander": "^9.2.0",
     "exceljs": "^4.3.0",
