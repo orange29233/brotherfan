@@ -10,7 +10,9 @@ for (const item of commandConfig) {
     .command(item.command)
     .alias(item.alias)
     .description(item.description)
-    .action(item.action);
+    .action(option=>{
+      item.action(option)
+    });
 }
 program.parse(process.argv);
 

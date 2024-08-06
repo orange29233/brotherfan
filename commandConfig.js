@@ -23,5 +23,13 @@ module.exports = [
             require('./src/modules/sethost/index.js')(option)
         }
     },
+    {
+        command: "create <name>",
+        alias: "c",
+        description: "创建项目",
+        action: (option) => {
+            require('./src/modules/create/index.js')(option)
+        }
+    },
 
 ]
