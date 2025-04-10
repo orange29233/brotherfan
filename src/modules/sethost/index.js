@@ -20,7 +20,7 @@ async function setDns(githubDns) {
   fs.readFile(hostPath, (err, data) => {
     if (err) return err;
     let str = data.toString();
-    let reg = /^(\# GitHub Host Start|\# GitHub Host End).*$/gms;
+    let reg = /^(\# 地址可能会变动|\# GitHub Host End).*$/gms;
     str = str.replace(reg, githubDns);
     fs.writeFile(hostPath, str, (err) => {
       if (err) {
