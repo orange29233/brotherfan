@@ -7,14 +7,6 @@ module.exports = [
       require("./src/modules/generateApiFile/index.js")(option);
     },
   },
-  // {
-  //     command: "weather [city]",
-  //     alias: "w",
-  //     description: "查看天气预报",
-  //     action: (option) => {
-  //         require('./src/modules/weather/index.js')(option)
-  //     }
-  // },
   {
     command: "sethost [domain]",
     alias: "sh",
