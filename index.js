@@ -18,15 +18,15 @@ for (const item of commandConfig) {
 program
   .command("generateReport")
   .alias("gr")
-  .description("根据gitlog生成周报或日报")
-  .option("-t, --type <type>", "报告类型（周报或日报）", "周报")
-  .option("-p, --path <path>", "仓库路径", process.cwd())
+  .description("根据gitlog生成工作报告")
+  .option("-s, --start-date <date>", "开始日期 (YYYY-MM-DD)")
+  .option("-e, --end-date <date>", "结束日期 (YYYY-MM-DD)")
+  .option("-a, --author <author>", "作者名称")
   .action((options) => {
-    const reportType = options.type;
-    const repositoryPath = path.resolve(options.path);
-    console.log(`生成${reportType}，仓库路径：${repositoryPath}`);
-    main(reportType, repositoryPath).catch((err) => {
+    try {
+      main(options);
+    } catch (err) {
       console.error("执行失败:", err);
-    });
+    }
   });
 program.parse(process.argv);
