@@ -16,9 +16,13 @@ const CONFIG = {
     'D:\\projects\\whdc\\smart-ops-frontend',
     'D:\\projects\\dms\\dms-frontend',
     'D:\\projects\\wms\\wms-frontend',
+    'D:\\projects\\wms\\wms-pad',
     'D:\\projects\\wflow-pro-next-mobile',
     'D:\\projects\\wflow-pro-web-next',
     'D:\\projects\\workshop\\workshop-frontend',
+    'D:\\projects\\sh\\wms-frontend',
+    'D:\\projects\\sh\\dms-frontend',
+    'D:\\projects\\sh\\system-frontend',
   ],
   // 默认作者
   author: 'wangfan'
@@ -31,7 +35,7 @@ const CONFIG = {
 function getDefaultDateRange() {
   const endDate = new Date();
   const startDate = new Date();
-  startDate.setDate(endDate.getDate() - 7);
+  startDate.setDate(endDate.getDate() - 10);
 
   return {
     startDate: startDate.toISOString().split('T')[0],
@@ -212,8 +216,6 @@ function main(options = {}) {
     // 遍历仓库列表
     CONFIG.repos.forEach(repoPath => {
       const repoName = path.basename(repoPath);
-      console.log(`\n处理仓库: ${repoName}`);
-
       updateTaskStatus(taskList, repoName, 'processing');
 
       try {
@@ -226,7 +228,6 @@ function main(options = {}) {
         }
 
         // 执行 Git 命令查询提交记录
-        console.log('执行 Git 命令...');
         const author = args.author || CONFIG.author;
         const gitOutput = getGitLogs(repoPath, startDate, endDate, author);
 
@@ -243,7 +244,6 @@ function main(options = {}) {
 
         // 更新任务清单，标记该仓库为已完成
         updateTaskStatus(taskList, repoName, 'completed');
-        console.log(`仓库 ${repoName} 处理完成`);
 
       } catch (error) {
         const errorMsg = `处理仓库 ${repoName} 时出错: ${error.message}`;
