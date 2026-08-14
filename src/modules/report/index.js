@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -11,18 +11,10 @@ const os = require("os");
 const CONFIG_FILE = path.join(os.homedir(), ".fanrc");
 
 /**
- * 默认配置
+ * 默认配置（repos 为空，首次运行时会自动创建示例配置）
  */
 const DEFAULT_CONFIG = {
-  repos: [
-    "D:\\projects\\sh\\wms-frontend",
-    "D:\\projects\\sh\\dms-frontend",
-    "D:\\projects\\dms\\dms-frontend",
-    "D:\\projects\\sh\\system-frontend",
-    "D:\\projects\\workshop\\workshop-frontend",
-    "D:\\projects\\workshop\\uni-ws-app",
-    "D:\\projects\\wflow-pro-web-next",
-  ],
+  repos: [],
   author: "",
 };
 
@@ -30,22 +22,22 @@ const DEFAULT_CONFIG = {
  * 读取配置文件
  */
 function readConfig() {
-  // 检查配置文件是否存在
-  if (fs.existsSync(CONFIG_FILE)) {
+  const fileExists = fs.existsSync(CONFIG_FILE);
+
+  if (fileExists) {
     try {
       const content = fs.readFileSync(CONFIG_FILE, "utf-8");
       return { ...DEFAULT_CONFIG, ...JSON.parse(content) };
     } catch (error) {
+      // 文件存在但解析失败：只警告，不覆盖用户配置
       console.warn(`配置文件解析失败，使用默认配置: ${error.message}`);
+      return DEFAULT_CONFIG;
     }
   }
 
-  // 如果没有配置文件，创建示例配置
-  if (DEFAULT_CONFIG.repos.length === 0) {
-    console.log("未找到配置文件，创建示例配置...");
-    createExampleConfig();
-  }
-
+  // 没有配置文件：自动创建示例，避免硬编码本机路径
+  console.log("未找到配置文件，创建示例配置...");
+  createExampleConfig();
   return DEFAULT_CONFIG;
 }
 
@@ -72,7 +64,7 @@ function createExampleConfig() {
 }
 
 /**
- * 获取默认时间范围（最近一周）
+ * 获取默认时间范围（最近 10 天）
  */
 function getDefaultDateRange() {
   const endDate = new Date();
@@ -83,6 +75,16 @@ function getDefaultDateRange() {
     startDate: startDate.toISOString().split("T")[0],
     endDate: endDate.toISOString().split("T")[0],
   };
+}
+
+/**
+ * 计算两个日期之间的天数（含起止两天）
+ */
+function daysBetween(start, end) {
+  const diffDays = Math.round(
+    (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)
+  );
+  return diffDays + 1;
 }
 
 /**
@@ -99,22 +101,6 @@ function parseArgs(options = {}) {
 }
 
 /**
- * 初始化任务清单
- */
-function initTaskList(repos) {
-  const taskList = {};
-  repos.forEach((repo) => {
-    const repoName = path.basename(repo);
-    taskList[repoName] = {
-      path: repo,
-      status: "pending", // pending, processing, completed, error
-      error: null,
-    };
-  });
-  return taskList;
-}
-
-/**
  * 检查仓库路径是否存在
  */
 function checkRepoExists(repoPath) {
@@ -123,16 +109,28 @@ function checkRepoExists(repoPath) {
 
 /**
  * 执行 Git 命令获取提交记录
+ * 使用 execFileSync 而非 execSync，避免 shell 解析用户输入造成命令注入
  */
 function getGitLogs(repoPath, startDate, endDate, author) {
-  const command = `git log --pretty=format:"%cd : %s" --date=short --no-merges --after="${startDate}" --before="${endDate}" --author="${author}" --encoding="utf-8"`;
-
   try {
-    const output = execSync(command, {
-      cwd: repoPath,
-      encoding: "utf-8",
-      maxBuffer: 1024 * 1024 * 10, // 10MB 缓冲区
-    });
+    const output = execFileSync(
+      "git",
+      [
+        "log",
+        "--pretty=format:%cd : %s",
+        "--date=short",
+        "--no-merges",
+        `--after=${startDate}`,
+        `--before=${endDate}`,
+        `--author=${author}`,
+        "--encoding=utf-8",
+      ],
+      {
+        cwd: repoPath,
+        encoding: "utf-8",
+        maxBuffer: 1024 * 1024 * 10, // 10MB 缓冲区
+      }
+    );
     return output.trim();
   } catch (error) {
     throw new Error(`Git 命令执行失败: ${error.message}`);
@@ -170,28 +168,27 @@ function parseGitOutput(output, repoName) {
 }
 
 /**
- * 更新任务状态
+ * 根据日期跨度决定报告标题
  */
-function updateTaskStatus(taskList, repoName, status, error = null) {
-  if (taskList[repoName]) {
-    taskList[repoName].status = status;
-    if (error) {
-      taskList[repoName].error = error;
-    }
-  }
+function reportTitle(startDate, endDate) {
+  const days = daysBetween(startDate, endDate);
+  if (days <= 1) return "工作日报";
+  if (days <= 7) return "工作周报";
+  return "工作报告";
 }
 
 /**
- * 生成 Markdown 格式的工作周报
+ * 生成 Markdown 格式的工作报告
  */
 function generateReport(aggregatedData, startDate, endDate) {
-  let report = `# 工作周报 (${startDate} 至 ${endDate})\n\n`;
+  const title = reportTitle(startDate, endDate);
+  let report = `# ${title} (${startDate} 至 ${endDate})\n\n`;
 
   // 获取所有日期并排序
   const dates = Object.keys(aggregatedData).sort();
 
   if (dates.length === 0) {
-    report += "本周暂无工作记录。\n";
+    report += "暂无工作记录。\n";
     return report;
   }
 
@@ -241,52 +238,43 @@ function main(options = {}) {
     console.log(`作者: ${author}`);
     console.log(`仓库数量: ${CONFIG.repos.length}`);
 
-    // 初始化任务清单
-    const taskList = initTaskList(CONFIG.repos);
-
-    // 创建空的工作报告对象
+    // 创建空的聚合报告对象
     const aggregatedData = {};
 
-    // 遍历仓库列表
+    // 遍历仓库列表，收集结果（用于末尾状态汇总）
+    const results = [];
     CONFIG.repos.forEach((repoPath) => {
       const repoName = path.basename(repoPath);
-      updateTaskStatus(taskList, repoName, "processing");
+
+      // 检查仓库路径是否存在
+      if (!checkRepoExists(repoPath)) {
+        const error = `仓库路径不存在: ${repoPath}`;
+        console.error(`✗ ${error}`);
+        results.push({ repoName, ok: false, error });
+        return;
+      }
 
       try {
-        // 检查仓库路径是否存在
-        if (!checkRepoExists(repoPath)) {
-          const error = `仓库路径不存在: ${repoPath}`;
-          console.error(`✗ ${error}`);
-          updateTaskStatus(taskList, repoName, "error", error);
-          return;
-        }
-
         // 执行 Git 命令查询提交记录
         const gitOutput = getGitLogs(repoPath, startDate, endDate, author);
-
-        // 解析命令输出，按日期聚合提交信息
         const repoData = parseGitOutput(gitOutput, repoName);
 
-        // 将聚合后的记录添加到工作报告中
-        Object.keys(repoData).forEach((date) => {
-          if (!aggregatedData[date]) {
-            aggregatedData[date] = {};
-          }
-          Object.assign(aggregatedData[date], repoData[date]);
+        // 将聚合后的记录合并到工作报告中
+        Object.entries(repoData).forEach(([date, projects]) => {
+          aggregatedData[date] = { ...aggregatedData[date], ...projects };
         });
 
-        // 更新任务清单，标记该仓库为已完成
-        updateTaskStatus(taskList, repoName, "completed");
         console.log(`✓ ${repoName}: 已完成`);
+        results.push({ repoName, ok: true });
       } catch (error) {
         const errorMsg = `处理仓库 ${repoName} 时出错: ${error.message}`;
         console.error(`✗ ${errorMsg}`);
-        updateTaskStatus(taskList, repoName, "error", errorMsg);
+        results.push({ repoName, ok: false, error: errorMsg });
       }
     });
 
-    // 生成最终的工作周报
-    console.log("\n生成工作周报...");
+    // 生成最终的工作报告
+    console.log("\n生成工作报告...");
     const report = generateReport(aggregatedData, startDate, endDate);
 
     // 输出报告
@@ -294,14 +282,10 @@ function main(options = {}) {
     console.log(report);
     console.log("=".repeat(50));
 
-    // 输出任务清单状态
+    // 输出任务处理状态
     console.log("\n任务处理状态:");
-    Object.entries(taskList).forEach(([repoName, task]) => {
-      const statusSymbol =
-        task.status === "completed" ? "✓" : task.status === "error" ? "✗" : "○";
-      console.log(
-        `  ${statusSymbol} ${repoName}: ${task.status}${task.error ? ` (${task.error})` : ""}`,
-      );
+    results.forEach(({ repoName, ok, error }) => {
+      console.log(`  ${ok ? "✓" : "✗"} ${repoName}${error ? ` (${error})` : ""}`);
     });
   } catch (error) {
     console.error("程序执行出错:", error.message);
@@ -317,11 +301,11 @@ if (require.main === module) {
 module.exports = {
   getDefaultDateRange,
   parseArgs,
-  initTaskList,
+  daysBetween,
   checkRepoExists,
   getGitLogs,
   parseGitOutput,
-  updateTaskStatus,
+  reportTitle,
   generateReport,
   main,
 };

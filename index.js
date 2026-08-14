@@ -2,7 +2,6 @@
 
 const program = require('commander');
 const commandConfig = require('./commandConfig.js');
-const { main } = require('./src/modules/report/index.js');
 const path = require('path');
 const fs = require('fs');
 
@@ -12,31 +11,26 @@ program.version(packageJson.version);
 
 // 注册命令配置中的命令
 for (const item of commandConfig) {
-  program
+  const cmd = program
     .command(item.command)
     .alias(item.alias)
-    .description(item.description)
-    .action((option) => {
-      item.action(option);
-    });
-}
+    .description(item.description);
 
-// 注册 generateReport 命令
-program
-  .command('generateReport')
-  .alias('gr')
-  .description('根据 git log 生成工作报告')
-  .option('-s, --start-date <date>', '开始日期 (YYYY-MM-DD)')
-  .option('-e, --end-date <date>', '结束日期 (YYYY-MM-DD)')
-  .option('-a, --author <author>', '作者名称')
-  .action((options) => {
-    try {
-      main(options);
-    } catch (err) {
-      console.error('执行失败:', err);
-      process.exit(1);
-    }
+  // 注册选项（如果定义）
+  if (item.options) {
+    item.options.forEach(([flags, description]) => {
+      cmd.option(flags, description);
+    });
+  }
+
+  // commander 会根据命令定义传入不同的参数：
+  // - 有位置参数时: (arg1, ..., options, command)
+  // - 仅有选项时: (options, command)
+  // 透传所有参数，让 action 自己决定如何取值
+  cmd.action((...args) => {
+    item.action(...args);
   });
+}
 
 program.parse(process.argv);
 
